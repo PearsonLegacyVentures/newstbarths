@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://stbarths.caribspa.org/sitemap.xml
