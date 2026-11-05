@@ -17,7 +17,7 @@ function stBarthsClock(instant){
   return {date:get("year")+"-"+get("month")+"-"+get("day"),time:get("hour")+":"+get("minute")};
 }
 function earliestTime(){
-  const cutoffInstant=new Date(Date.now()+5*60*60*1000);
+  const cutoffInstant=new Date(Date.now()+5*60*60*1000+59999);
   let cutoff=stBarthsClock(cutoffInstant);
   if(cutoff.time>="18:00")cutoff={date:stBarthsClock(new Date(cutoffInstant.getTime()+24*60*60*1000)).date,time:"10:00"};
   return cutoff;
