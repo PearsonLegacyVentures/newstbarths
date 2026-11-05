@@ -14,7 +14,7 @@ if(!matchDate||!matchTime)return json({error:"Choose a valid appointment date an
 const y=Number(matchDate[1]),m=Number(matchDate[2]),day=Number(matchDate[3]),hour=Number(matchTime[1]),minute=Number(matchTime[2]);
 const dayCheck=new Date(Date.UTC(y,m-1,day));
 if(dayCheck.getUTCFullYear()!==y||dayCheck.getUTCMonth()!==m-1||dayCheck.getUTCDate()!==day)return json({error:"Choose a valid appointment date."},400);
-if(hour<10||hour>=18||minute>59)return json({error:"Choose a start time between 10 AM and 6 PM (St. Barths time)."},400);
+if(hour<10||minute>59||hour*60+minute+Number(d.duration)>18*60)return json({error:"Choose a start time that allows your massage to finish by 6 PM (St. Barths time)."},400);
 // Saint Barthélemy observes UTC-04:00 all year.
 const requested=new Date(d.date+"T"+d.time+":00-04:00").getTime();
 if(!Number.isFinite(requested)||requested<Date.now()+5*60*60*1000)return json({error:"Appointments must be requested at least 5 hours ahead (St. Barths time)."},400);
