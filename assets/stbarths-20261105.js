@@ -16,10 +16,10 @@ function stBarthsClock(instant){
   const get=name=>p.find(part=>part.type===name)?.value;
   return {date:get("year")+"-"+get("month")+"-"+get("day"),time:get("hour")+":"+get("minute")};
 }
-function earliestTime(){
+function earliestTime(duration){
   const cutoffInstant=new Date(Date.now()+5*60*60*1000+59999);
   let cutoff=stBarthsClock(cutoffInstant);
-  if(cutoff.time>="18:00")cutoff={date:stBarthsClock(new Date(cutoffInstant.getTime()+24*60*60*1000)).date,time:"10:00"};
+  if(cutoff.time>(duration===90?"16:30":"17:00"))cutoff={date:stBarthsClock(new Date(cutoffInstant.getTime()+24*60*60*1000)).date,time:"10:00"};
   return cutoff;
 }
 function chosenOrder(){
@@ -32,7 +32,7 @@ function chosenOrder(){
 }
 function validateTime(date,time){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date||"")||!/^\d{2}:\d{2}$/.test(time||""))return "Please choose an appointment date and time.";
-  if(time<"10:00"||time>="18:00")return "Please choose a time between 10:00 AM and 6:00 PM (St. Barths local time).";
+  if(time<"10:00"||time>(Number(input("duration")?.value)===90?"16:30":"17:00"))return "Please choose a time that lets your massage finish by 6:00 PM (St. Barths time).";
   const instant=new Date(date+"T"+time+":00-04:00").getTime();
   if(!Number.isFinite(instant)||stBarthsClock(new Date(instant)).date!==date)return "Please choose a valid appointment date.";
   if(instant<Date.now()+5*60*60*1000)return "Bookings require at least 5 hours' notice. Please choose a later time (St. Barths local time).";
@@ -56,9 +56,9 @@ function syncOrder(){
   if(totalEl)totalEl.textContent=order.totalEur===null?"Custom quote required":euro(order.totalEur);
   const detailsEl=form.querySelector("#bookingOrderDetails");
   if(detailsEl)detailsEl.textContent=(serviceNames[order.service]||order.service)+(SETTING_SERVICES.has(order.service)?" — "+(serviceNames[order.treatment]||order.treatment):"")+" · "+order.duration+" minutes · "+order.quantity+" "+(order.treatment==="couples"?"couple(s)":"guest(s)")+(order.totalEur===null?" · Price confirmed before payment":"");
-  const cutoff=earliestTime(),dateField=input("date"),timeField=input("time");
+  const cutoff=earliestTime(order.duration),dateField=input("date"),timeField=input("time");
   if(dateField)dateField.min=cutoff.date;
-  if(timeField){timeField.min=dateField?.value===cutoff.date&&cutoff.time>"10:00"?cutoff.time:"10:00";timeField.max="17:59";}
+  if(timeField){timeField.min=dateField?.value===cutoff.date&&cutoff.time>"10:00"?cutoff.time:"10:00";timeField.max=order.duration===90?"16:30":"17:00";}
   const warning=form.querySelector(".booking-validation-error");
   if(warning)warning.hidden=true;
 }
@@ -78,7 +78,7 @@ function enhanceBooking(){
   durationField.after(quantity);
   const hint=document.createElement("p");
   hint.className="booking-time-hint field full";
-  hint.textContent="Booking hours: 10:00 AM–6:00 PM, St. Barths time. At least 5 hours' advance notice is required.";
+  hint.textContent="Booking hours: 10:00 AM–6:00 PM, St. Barths time. Sessions finish by 6 PM. At least 5 hours' notice is required.";
   timeField.after(hint);
   const total=document.createElement("div");
   total.className="field full booking-price-summary";
