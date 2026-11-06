@@ -1,8 +1,8 @@
 const modal=document.querySelector("#bookingModal"),form=document.querySelector("#bookingForm");
 const serviceNames={swedish:"Swedish Massage",deep:"Deep Tissue Massage",couples:"Couples Massage",sports:"Sports Massage",villa:"Villa Massage",hotel:"Hotel / In-Room Massage",yacht:"Yacht Massage",mobile:"Mobile Massage"};
-function openBooking(service="swedish",duration="60"){if(!modal||!form)return;modal.classList.add("open");document.body.style.overflow="hidden";if(form.service)form.service.value=service;if(form.duration)form.duration.value=duration}
+function openBooking(service="",duration="60"){if(!modal||!form)return;modal.classList.add("open");document.body.style.overflow="hidden";if(form.service)form.service.value=service;if(form.duration)form.duration.value=duration}
 function closeBooking(){if(!modal)return;modal.classList.remove("open");document.body.style.overflow=""}
-document.addEventListener("click",e=>{const b=e.target.closest("[data-book]");if(b){e.preventDefault();openBooking(b.dataset.service||"swedish",b.dataset.duration||"60")}if(e.target.matches("[data-close]")||e.target===modal)closeBooking()});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-book]");if(b){e.preventDefault();openBooking(b.dataset.service||"",b.dataset.duration||"60")}if(e.target.matches("[data-close]")||e.target===modal)closeBooking()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeBooking()});
 document.querySelectorAll(".faq-q").forEach(b=>b.addEventListener("click",()=>b.parentElement.classList.toggle("open")));
 document.querySelectorAll(".pay-card").forEach(card=>card.addEventListener("click",()=>{document.querySelectorAll(".pay-card").forEach(x=>x.classList.remove("selected"));card.classList.add("selected");card.querySelector("input").checked=true}));
@@ -23,7 +23,7 @@ function earliestTime(duration){
   return cutoff;
 }
 function chosenOrder(){
-  const service=input("service")?.value||"swedish";
+  const service=input("service")?.value||"";
   const treatment=SETTING_SERVICES.has(service)?input("treatment")?.value||"swedish":service;
   const duration=Number(input("duration")?.value||60);
   const quantity=Number(input("quantity")?.value||1);
@@ -53,7 +53,7 @@ function syncOrder(){
   const quantityLabel=form.querySelector(".booking-quantity-field label");
   if(quantityLabel)quantityLabel.textContent=order.treatment==="couples"?"Number of couples":"Number of guests";
   const totalEl=form.querySelector("#bookingOrderTotal");
-  if(totalEl)totalEl.textContent=order.totalEur===null?"Custom quote required":euro(order.totalEur);
+  if(totalEl)totalEl.textContent=!order.service?"Choose a service":order.totalEur===null?"Custom quote required":euro(order.totalEur);
   const detailsEl=form.querySelector("#bookingOrderDetails");
   if(detailsEl)detailsEl.textContent=(serviceNames[order.service]||order.service)+(SETTING_SERVICES.has(order.service)?" — "+(serviceNames[order.treatment]||order.treatment):"")+" · "+order.duration+" minutes · "+order.quantity+" "+(order.treatment==="couples"?"couple(s)":"guest(s)")+(order.totalEur===null?" · Price confirmed before payment":"");
   const cutoff=earliestTime(order.duration),dateField=input("date"),timeField=input("time");
@@ -94,7 +94,7 @@ function enhanceBooking(){
   syncOrder();
 }
 const openOriginal=openBooking;
-openBooking=function(service="swedish",duration="60"){
+openBooking=function(service="",duration="60"){
   const success=modal?.querySelector(".booking-confirmation");
   if(success){success.remove();form.hidden=false;form.reset();}
   openOriginal(service,duration);
@@ -131,6 +131,9 @@ function showSuccess(payload,result,order){
   form.hidden=true;form.after(summary);
 }
 if(form){
+  const serviceInput=input("service");
+  if(serviceInput&&!Array.from(serviceInput.options).some(opt=>opt.value===""))serviceInput.insertBefore(new Option("Choose a massage",""),serviceInput.firstChild);
+  if(serviceInput)serviceInput.required=true;
   enhanceBooking();
   form.addEventListener("submit",async e=>{
     e.preventDefault();
